@@ -1,0 +1,707 @@
+  
+    :root {
+      --bg-primary: #f0f2f5;
+      --bg-secondary: #ffffff;
+      --bg-chat: #e5ddd5;
+      --bg-chat-gradient: linear-gradient(135deg, #e5ddd5 0%, #d4cec4 100%);
+      --text-primary: #1a1a1a;
+      --text-secondary: #8696a0;
+      --text-muted: #a0a0a0;
+      --accent: #25D366;
+      --accent-dark: #128C7E;
+      --accent-light: #dcf8c6;
+      --bubble-outgoing: #dcf8c6;
+      --bubble-incoming: #ffffff;
+      --success: #25D366;
+      --danger: #ff4757;
+      --card: #ffffff;
+      --border: rgba(0,0,0,0.06);
+      --header-bg: rgba(240,242,245,0.95);
+      --input-bg: #f0f2f5;
+    }
+    
+    * {
+      -webkit-tap-highlight-color: transparent;
+      box-sizing: border-box;
+      -webkit-appearance: none;
+    }
+    
+    html, body {
+      height: 100%;
+      height: 100dvh;
+    }
+    
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      overscroll-behavior: none;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+    
+    /* ============================================
+       SMOOTH PAGE TRANSITIONS
+    ============================================ */
+    .page {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateX(100%);
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      height: 100dvh;
+      overflow: hidden;
+    }
+    
+    .page.active {
+      opacity: 1;
+      visibility: visible;
+      transform: translateX(0);
+      z-index: 10;
+    }
+    
+    .page.slide-left {
+      transform: translateX(-25%);
+      opacity: 0.7;
+    }
+    
+    /* ============================================
+       MESSAGE ANIMATIONS - TELEGRAM STYLE
+    ============================================ */
+    @keyframes messageBubblePop {
+      0% {
+        opacity: 0;
+        transform: scale(0.8) translateY(10px);
+      }
+      50% {
+        transform: scale(1.02) translateY(-2px);
+      }
+      100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+      }
+    }
+    
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(15px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    @keyframes typingBounce {
+      0%, 60%, 100% { transform: translateY(0); }
+      30% { transform: translateY(-4px); }
+    }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    
+    @keyframes smoothAppear {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    @keyframes sendButtonPulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(0.9); }
+      100% { transform: scale(1); }
+    }
+    
+    @keyframes dateSeparatorFade {
+      from { opacity: 0; transform: scale(0.9); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    
+    .animate-message-in {
+      animation: messageBubblePop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
+    
+    .animate-smooth {
+      animation: smoothAppear 0.3s ease-out forwards;
+    }
+    
+    .animate-send-pulse {
+      animation: sendButtonPulse 0.2s ease-out;
+    }
+    
+    /* ============================================
+       CHAT BUBBLES - TELEGRAM STYLE
+    ============================================ */
+    .bubble-wrapper {
+      display: flex;
+      margin-bottom: 4px;
+      padding: 0 12px;
+    }
+    
+    .bubble-wrapper.outgoing {
+      justify-content: flex-end;
+    }
+    
+    .bubble-wrapper.incoming {
+      justify-content: flex-start;
+    }
+    
+    .bubble {
+      max-width: 85%;
+      position: relative;
+      padding: 8px 12px;
+      border-radius: 18px;
+      font-size: 15px;
+      line-height: 1.45;
+      word-wrap: break-word;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+      transition: transform 0.2s ease;
+    }
+    
+    .bubble:active {
+      transform: scale(0.98);
+    }
+    
+    .bubble-incoming {
+      background: var(--bubble-incoming);
+      color: var(--text-primary);
+      border-bottom-left-radius: 4px;
+    }
+    
+    .bubble-outgoing {
+      background: var(--bubble-outgoing);
+      color: var(--text-primary);
+      border-bottom-right-radius: 4px;
+    }
+    
+    .bubble-time {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      margin-left: 8px;
+      font-size: 11px;
+      color: var(--text-secondary);
+      float: right;
+      margin-top: 4px;
+    }
+    
+    .bubble-outgoing .bubble-time {
+      color: rgba(0,0,0,0.45);
+    }
+    
+    .checkmark {
+      display: inline-flex;
+      color: var(--text-secondary);
+      transition: all 0.3s ease;
+    }
+    
+    .checkmark.read {
+      color: #4fc3f7;
+    }
+    
+    .checkmark svg {
+      width: 16px;
+      height: 11px;
+    }
+    
+    /* Reply Preview */
+    .reply-preview {
+      background: rgba(0,0,0,0.06);
+      border-left: 3px solid var(--accent);
+      padding: 6px 10px;
+      margin-bottom: 6px;
+      border-radius: 6px;
+      font-size: 13px;
+    }
+    
+    .reply-preview-name {
+      font-weight: 600;
+      color: var(--accent-dark);
+      margin-bottom: 2px;
+    }
+    
+    .reply-preview-text {
+      color: var(--text-secondary);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    
+    /* Date Separator */
+    .date-separator {
+      display: flex;
+      justify-content: center;
+      padding: 12px 0;
+      animation: dateSeparatorFade 0.3s ease-out forwards;
+    }
+    
+    .date-separator span {
+      background: rgba(255,255,255,0.9);
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    
+    /* ============================================
+       CHAT LIST ITEMS
+    ============================================ */
+    .chat-item {
+      display: flex;
+      align-items: center;
+      padding: 12px 16px;
+      background: var(--bg-secondary);
+      transition: all 0.2s ease;
+      cursor: pointer;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .chat-item:active {
+      background: var(--bg-primary);
+      transform: scale(0.99);
+    }
+    
+    .chat-item-avatar {
+      position: relative;
+      margin-right: 14px;
+      flex-shrink: 0;
+    }
+    
+    .online-indicator {
+      position: absolute;
+      bottom: 1px;
+      right: 1px;
+      width: 12px;
+      height: 12px;
+      background: var(--success);
+      border-radius: 50%;
+      border: 2px solid white;
+      animation: pulse 2s ease-in-out infinite;
+    }
+    
+    .unread-badge {
+      background: var(--accent);
+      color: white;
+      font-size: 12px;
+      font-weight: 600;
+      min-width: 22px;
+      height: 22px;
+      border-radius: 11px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 6px;
+    }
+    
+    /* ============================================
+       HEADER STYLES
+    ============================================ */
+    .header {
+      background: var(--header-bg);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      flex-shrink: 0;
+    }
+    
+    .header-back-btn {
+      display: flex;
+      align-items: center;
+      color: var(--accent-dark);
+      font-weight: 500;
+      padding: 8px;
+      margin-left: -8px;
+      border-radius: 20px;
+      transition: all 0.2s ease;
+    }
+    
+    .header-back-btn:active {
+      background: rgba(0,0,0,0.05);
+      transform: scale(0.95);
+    }
+    
+    .status-online {
+      color: var(--success);
+      font-size: 13px;
+    }
+    
+    .status-offline {
+      color: var(--text-secondary);
+      font-size: 13px;
+    }
+    
+    /* Typing indicator */
+    .typing-indicator {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+    }
+    
+    .typing-dot {
+      width: 6px;
+      height: 6px;
+      background: var(--accent);
+      border-radius: 50%;
+    }
+    
+    .typing-dot:nth-child(1) { animation: typingBounce 1.2s ease-in-out infinite 0ms; }
+    .typing-dot:nth-child(2) { animation: typingBounce 1.2s ease-in-out infinite 150ms; }
+    .typing-dot:nth-child(3) { animation: typingBounce 1.2s ease-in-out infinite 300ms; }
+    
+    /* ============================================
+       INPUT AREA
+    ============================================ */
+    .input-area {
+      background: var(--bg-secondary);
+      border-top: 1px solid var(--border);
+      padding: 10px 12px;
+      flex-shrink: 0;
+    }
+    
+    .input-container {
+      display: flex;
+      align-items: flex-end;
+      gap: 10px;
+    }
+    
+    .message-input {
+      flex: 1;
+      background: var(--input-bg);
+      border: none;
+      border-radius: 22px;
+      padding: 10px 18px;
+      font-size: 16px;
+      resize: none;
+      outline: none;
+      max-height: 120px;
+      min-height: 42px;
+      line-height: 1.4;
+      transition: all 0.2s ease;
+      font-family: inherit;
+    }
+    
+    .message-input:focus {
+      box-shadow: 0 0 0 2px rgba(37, 211, 102, 0.2);
+    }
+    
+    .message-input::placeholder {
+      color: var(--text-muted);
+    }
+    
+    .send-button {
+      width: 46px;
+      height: 46px;
+      background: var(--accent);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      flex-shrink: 0;
+      border: none;
+      box-shadow: 0 2px 8px rgba(37, 211, 102, 0.3);
+    }
+    
+    .send-button:active {
+      transform: scale(0.9);
+    }
+    
+    /* Reply Box */
+    .reply-box {
+      background: var(--bg-secondary);
+      border-top: 1px solid var(--border);
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      animation: fadeInUp 0.25s ease-out;
+    }
+    
+    .reply-box-content {
+      flex: 1;
+      min-width: 0;
+    }
+    
+    .reply-box-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--accent-dark);
+    }
+    
+    .reply-box-text {
+      font-size: 14px;
+      color: var(--text-secondary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    .reply-box-close {
+      color: var(--text-secondary);
+      padding: 4px;
+      cursor: pointer;
+    }
+    
+    /* ============================================
+       SEARCH & MENU
+    ============================================ */
+    .search-container {
+      padding: 12px 16px;
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .search-input {
+      width: 100%;
+      background: var(--input-bg);
+      border: none;
+      border-radius: 22px;
+      padding: 10px 16px 10px 44px;
+      font-size: 15px;
+      outline: none;
+      transition: all 0.2s ease;
+    }
+    
+    .search-input:focus {
+      box-shadow: 0 0 0 2px rgba(37, 211, 102, 0.2);
+    }
+    
+    .search-icon {
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-secondary);
+    }
+    
+    .search-results {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: var(--bg-secondary);
+      border-radius: 12px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+      overflow: hidden;
+      z-index: 100;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    
+    .menu-dropdown {
+      position: absolute;
+      top: 100%;
+      right: 8px;
+      background: var(--bg-secondary);
+      border-radius: 12px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+      overflow: hidden;
+      z-index: 100;
+      min-width: 180px;
+      animation: fadeInUp 0.2s ease-out;
+    }
+    
+    .menu-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      font-size: 15px;
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+    
+    .menu-item:active {
+      background: var(--input-bg);
+    }
+    
+    .menu-item.danger {
+      color: var(--danger);
+    }
+    
+    /* ============================================
+       AUTH PAGES
+    ============================================ */
+    .auth-header {
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
+      padding: 60px 24px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .auth-header::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -50%;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    }
+    
+    .auth-logo {
+      width: 80px;
+      height: 80px;
+      background: white;
+      border-radius: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 16px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+    }
+    
+    .auth-form {
+      background: var(--bg-secondary);
+      border-radius: 24px 24px 0 0;
+      margin-top: -24px;
+      padding: 32px 24px;
+      flex: 1;
+      overflow-y: auto;
+    }
+    
+    .ios-input {
+      width: 100%;
+      background: var(--input-bg);
+      border: none;
+      border-radius: 14px;
+      padding: 14px 18px;
+      font-size: 16px;
+      outline: none;
+      transition: all 0.2s ease;
+      font-family: inherit;
+    }
+    
+    .ios-input:focus {
+      box-shadow: 0 0 0 3px rgba(37, 211, 102, 0.2);
+    }
+    
+    .ios-input::placeholder {
+      color: var(--text-muted);
+    }
+    
+    .ios-button {
+      width: 100%;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 14px;
+      padding: 16px;
+      font-size: 17px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-family: inherit;
+    }
+    
+    .ios-button:active {
+      transform: scale(0.98);
+      opacity: 0.9;
+    }
+    
+    .ios-button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    
+    /* ============================================
+       TOAST
+    ============================================ */
+    .toast {
+      position: fixed;
+      bottom: 100px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: rgba(0,0,0,0.85);
+      color: white;
+      padding: 12px 24px;
+      border-radius: 24px;
+      font-size: 14px;
+      font-weight: 500;
+      z-index: 9999;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      backdrop-filter: blur(10px);
+    }
+    
+    .toast.show {
+      opacity: 1;
+      visibility: visible;
+      transform: translateX(-50%) translateY(0);
+    }
+    
+    /* ============================================
+       SCROLLBAR
+    ============================================ */
+    ::-webkit-scrollbar {
+      width: 4px;
+    }
+    
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    
+    ::-webkit-scrollbar-thumb {
+      background: rgba(0,0,0,0.15);
+      border-radius: 2px;
+    }
+    
+    /* ============================================
+       SPINNER
+    ============================================ */
+    .spinner {
+      width: 22px;
+      height: 22px;
+      border: 2.5px solid rgba(255,255,255,0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    /* Empty State */
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 60px 40px;
+      text-align: center;
+    }
+    
+    .empty-state-icon {
+      width: 80px;
+      height: 80px;
+      background: var(--input-bg);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+  

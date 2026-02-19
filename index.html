@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>ChatFlow</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+  <link rel="stylesheet" href="style.css">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#25D366">
+</head>
+<body>
+  
+  <!-- LOGIN PAGE -->
+  <div id="page-login" class="page active">
+    <div class="flex flex-col h-full">
+      <div class="auth-header flex-shrink-0">
+        <div class="auth-logo">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none">
+            <path d="M20 2H4C2.9 2 2 2.9 2 4V22L6 18H20C21.1 18 22 17.1 22 16V4C22 2.9 21.1 2 20 2Z" fill="#25D366"/>
+            <circle cx="8" cy="9" r="1.5" fill="white"/>
+            <circle cx="12" cy="9" r="1.5" fill="white"/>
+            <circle cx="16" cy="9" r="1.5" fill="white"/>
+          </svg>
+        </div>
+        <h1 class="text-white text-3xl font-semibold mb-2">ChatFlow</h1>
+        <p class="text-white/80 text-sm">Simple & Secure Messaging</p>
+      </div>
+      
+      <div class="auth-form">
+        <h2 class="text-2xl font-semibold mb-6 text-center">Welcome back</h2>
+        
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-600 mb-2">Password</label>
+            <input 
+              type="password" 
+              id="login-password" 
+              class="ios-input"
+              placeholder="Enter your password"
+              onkeydown="if(event.key === 'Enter') loginUser()"
+            >
+          </div>
+          
+          <button id="login-btn" onclick="loginUser()" class="ios-button mt-6">
+            <span id="login-btn-text">Log In</span>
+          </button>
+        </div>
+        
+        <div class="mt-8 text-center">
+          <button onclick="showPage('create')" class="text-[var(--accent-dark)] font-medium">
+            Create new account
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- CREATE ACCOUNT PAGE -->
+  <div id="page-create" class="page">
+    <div class="flex flex-col h-full bg-white">
+      <div class="header">
+        <div class="flex items-center justify-between px-4 py-3">
+          <button onclick="showPage('login')" class="header-back-btn">
+            <svg class="w-6 h-6 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+            </svg>
+            Cancel
+          </button>
+          <span class="font-semibold text-lg">Create Account</span>
+          <div class="w-16"></div>
+        </div>
+      </div>
+      
+      <div class="flex-1 overflow-y-auto p-6">
+        <div class="max-w-sm mx-auto">
+          <div class="flex justify-center mb-8">
+            <div class="relative">
+              <img 
+                id="create-avatar-preview" 
+                src="https://api.dicebear.com/7.x/avataaars/svg?seed=default"
+                class="w-24 h-24 rounded-full bg-gray-100"
+                alt="Avatar"
+              >
+              <div class="absolute -bottom-1 -right-1 w-8 h-8 bg-[var(--accent)] rounded-full flex items-center justify-center cursor-pointer" onclick="document.getElementById('create-photo').focus()">
+                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+                </svg>
+              </div>
+            </div>
+          </div>
+          
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-600 mb-2">Name</label>
+              <input type="text" id="create-name" class="ios-input" placeholder="Your display name">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-600 mb-2">Password</label>
+              <input type="password" id="create-password" class="ios-input" placeholder="Choose a password">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-600 mb-2">Photo URL (optional)</label>
+              <input type="text" id="create-photo" class="ios-input" placeholder="https://example.com/photo.jpg" oninput="updateAvatarPreview()">
+            </div>
+            <button id="create-btn" onclick="createAccount()" class="ios-button mt-6">
+              <span id="create-btn-text">Create Account</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- HOME PAGE -->
+  <div id="page-home" class="page">
+    <div class="flex flex-col h-full">
+      <div class="header">
+        <div class="flex items-center justify-between px-4 py-3">
+          <div class="w-10"></div>
+          <span class="font-semibold text-lg">Messages</span>
+          <div class="relative">
+            <button onclick="toggleMenu()" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-black/5 transition-colors">
+              <svg class="w-6 h-6 text-gray-600" fill="currentColor" viewBox="0 0 24 24">
+                <circle cx="12" cy="5" r="2"/>
+                <circle cx="12" cy="12" r="2"/>
+                <circle cx="12" cy="19" r="2"/>
+              </svg>
+            </button>
+            <div id="menu-dropdown" class="menu-dropdown hidden">
+              <div class="menu-item" onclick="showPage('profile')">
+                <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                </svg>
+                <span>Profile</span>
+              </div>
+              <div class="menu-item danger" onclick="logoutUser()">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                </svg>
+                <span>Log Out</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="search-container">
+        <div class="relative">
+          <svg class="search-icon w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+          </svg>
+          <input 
+            type="text" 
+            id="search-input"
+            class="search-input"
+            placeholder="Search users to chat..."
+            oninput="searchUsers(this.value)"
+          >
+          <div id="search-results" class="search-results hidden"></div>
+        </div>
+      </div>
+      
+      <div class="flex-1 overflow-y-auto bg-[var(--bg-primary)]" id="chat-list-container">
+        <div id="chat-list"></div>
+        <div id="empty-state" class="empty-state hidden">
+          <div class="empty-state-icon">
+            <svg class="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+            </svg>
+          </div>
+          <h3 class="font-semibold text-lg mb-1">No messages yet</h3>
+          <p class="text-[var(--text-secondary)] text-sm">Search for users above to start a conversation</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- CHAT PAGE -->
+  <div id="page-chat" class="page">
+    <div class="flex flex-col h-full">
+      <!-- Header -->
+      <div class="header">
+        <div class="flex items-center px-2 py-2">
+          <button onclick="closeChat()" class="header-back-btn">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+            </svg>
+          </button>
+          
+          <div class="flex items-center flex-1 justify-center cursor-pointer">
+            <img id="chat-avatar" src="" class="w-10 h-10 rounded-full mr-3">
+            <div>
+              <div id="chat-name" class="font-semibold text-base"></div>
+              <div id="chat-status" class="status-offline"></div>
+            </div>
+          </div>
+          
+          <div class="w-10"></div>
+        </div>
+      </div>
+      
+      <!-- Messages -->
+      <div class="flex-1 overflow-y-auto py-3" id="messages-container" style="background: var(--bg-chat-gradient);">
+        <div id="messages-list"></div>
+        <div style="height: 16px;"></div>
+      </div>
+      
+      <!-- Reply Box -->
+      <div id="reply-box" class="reply-box hidden">
+        <div class="reply-box-content">
+          <div class="reply-box-name" id="reply-name"></div>
+          <div class="reply-box-text" id="reply-text"></div>
+        </div>
+        <button onclick="cancelReply()" class="reply-box-close">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+      
+      <!-- Input -->
+      <div class="input-area">
+        <div class="input-container">
+          <textarea 
+            id="message-input"
+            class="message-input"
+            placeholder="Type a message..."
+            rows="1"
+            onkeydown="handleMessageKeydown(event)"
+            oninput="handleTyping()"
+          ></textarea>
+          <button 
+            onclick="sendMessage()"
+            class="send-button"
+            id="send-btn"
+          >
+            <svg class="w-5 h-5 text-white ml-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 12h14M12 5l7 7-7 7"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- PROFILE PAGE -->
+  <div id="page-profile" class="page">
+    <div class="flex flex-col h-full bg-white">
+      <div class="header">
+        <div class="flex items-center justify-between px-4 py-3">
+          <button onclick="showPage('home')" class="header-back-btn">
+            <svg class="w-6 h-6 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+            </svg>
+            Cancel
+          </button>
+          <span class="font-semibold text-lg">Profile</span>
+          <div class="w-10"></div>
+        </div>
+      </div>
+      
+      <div class="flex-1 overflow-y-auto p-6">
+        <div class="max-w-sm mx-auto">
+          <div class="flex justify-center mb-8">
+            <img id="profile-avatar-preview" src="" class="w-28 h-28 rounded-full bg-gray-100" alt="Avatar">
+          </div>
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-600 mb-2">Name</label>
+              <input type="text" id="profile-name" class="ios-input" placeholder="Your display name">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-600 mb-2">Photo URL</label>
+              <input type="text" id="profile-photo" class="ios-input" placeholder="https://example.com/photo.jpg" oninput="updateProfileAvatarPreview()">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-600 mb-2">Password</label>
+              <input type="password" id="profile-password" class="ios-input bg-gray-100" disabled>
+            </div>
+            <button onclick="saveProfile()" class="ios-button mt-6">Save Changes</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Toast -->
+  <script>
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", function() {
+      navigator.serviceWorker.register("service-worker.js")
+        .then(function(registration) {
+          console.log("ServiceWorker registered:", registration.scope);
+        })
+        .catch(function(error) {
+          console.log("ServiceWorker registration failed:", error);
+        });
+    });
+  }
+</script>
+  <div id="toast" class="toast"></div>
+  <script type="text/javascript" charset="utf-8" src="config.js"></script>
+ <script type="text/javascript" charset="utf-8" src="main.js"></script>
+ 
+ 
+</body>
+</html>
